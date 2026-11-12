@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Anti-Pauselock",
+  "version": "1.0",
+  "description": "Prevents live TV sites from pausing shows when opening the guide.",
+   "icons": {
+    "16": "anti-pauseico.png",
+    "48": "anti-pauseico.png",
+    "128": "anti-pauseico.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://tv.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
