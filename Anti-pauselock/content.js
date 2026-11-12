@@ -15,7 +15,6 @@ style.textContent = `
 
 let lastHumanInput = 0;
 const nativePause = HTMLVideoElement.prototype.pause;
-const nativePlay = HTMLVideoElement.prototype.play;
 
 // 1. Track human input timestamps
 ['pointerdown', 'pointerup', 'click'].forEach((evt) => {
@@ -50,16 +49,20 @@ document.addEventListener('click', (e) => {
   }
 }, true);
 
-// 4. On scroll up: unlock disabled buttons & call YouTube's internal player seekBy() API
-let resetTimer;
-window.addEventListener('wheel', (e) => {
-  if (e.deltaY >= 0) return;
+// 4. Unlock buttons & sync player ONLY when the video player is actually visible in the center of the screen
+let syncCooldown = false;
+window.addEventListener('pointermove', () => {
+  if (syncCooldown) return;
 
+  // Check what is physically visible at the center of the screen
+  const centerEl = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+  const playerVisible = centerEl && centerEl.closest('ytu-player, ytu-player-controller, #movie_player');
+  if (!playerVisible) return;
+
+  // Always keep player icon buttons unlocked when the player is visible
   document.querySelectorAll('ytu-icon-button[disabled]').forEach((el) => {
     el.disabled = false;
     el.removeAttribute('disabled');
-    if (el.set) el.set('disabled', false);
-
     const innerBtn = el.querySelector('button');
     if (innerBtn) {
       innerBtn.disabled = false;
@@ -67,14 +70,16 @@ window.addEventListener('wheel', (e) => {
     }
   });
 
-  clearTimeout(resetTimer);
-  resetTimer = setTimeout(() => {
-    const player = document.querySelector('#movie_player, .html5-video-player');
-    const stuckPlayBtn = document.querySelector('#play-pause-button[aria-label="Play (k)"]');
-    if (player && typeof player.seekBy === 'function' && stuckPlayBtn) {
-      lastHumanInput = Date.now();
-      player.seekBy(-0.1);
-      player.seekBy(0.1);
-    }
-  }, 150);
-}, { passive: true, capture: true });
+  const stuckPlayBtn = document.querySelector('#play-pause-button[aria-label="Play (k)"]');
+  if (!stuckPlayBtn) return;
+
+  syncCooldown = true;
+  const player = document.querySelector('#movie_player, .html5-video-player');
+  if (player && typeof player.seekBy === 'function') {
+    lastHumanInput = Date.now();
+    player.seekBy(-0.1);
+    player.seekBy(0.1);
+  }
+
+  setTimeout(() => { syncCooldown = false; }, 1000);
+}, { passive: true });
