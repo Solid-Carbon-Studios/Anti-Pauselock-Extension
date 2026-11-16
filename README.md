@@ -6,6 +6,11 @@ Description: A small unnoticeable hitch to allow you to watch a disney movie or 
 Step by Step:
 
 Step 1: Open your browser of choice and enter the Extensions tab
+
+
+
+
+
 Step 2: Ensure DEVELOPER MODE IS ACTIVE.
 
 -Leave tab open and continue-
